@@ -227,9 +227,9 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
         style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` }}
       >
         {[
-          ["What", material],
-          ["Where", selectedEquipment ? selectedEquipment.name.split(" ")[0] : "—"],
-          ["How", `${holeSizeMm} mm · ${RELEASE_TYPE_LABEL[releaseType]}`],
+          ["Material", material],
+          ["equipment", selectedEquipment ? selectedEquipment.name.split(" ")[0] : "—"],
+          ["Inlet", `${holeSizeMm} mm · ${RELEASE_TYPE_LABEL[releaseType]}`],
           ["Conditions", `${windSpeedMS.toFixed(1)} m/s from ${compassLabel(windDirectionDeg)} · Class ${stabilityClass}`],
         ].map(([label, value]) => (
           <span key={label} style={{ fontFamily: fontUI, fontSize: 12 }}>
@@ -243,7 +243,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
         {/* LEFT — continuous field groups, no repeated card chrome */}
         <div className="flex-1 overflow-y-auto" style={{ borderRight: `1px solid ${COLORS.border}` }}>
           <div className="mx-auto" style={{ maxWidth: 640, padding: "28px 32px 40px" }}>
-            <GroupHeading index="01" title="What & where" />
+            <GroupHeading index="01" title="Material Properties" />
             <div className="grid grid-cols-2 gap-5">
               <FieldRow label="Material" hint="Propane only in this prototype">
                 <select value={material} onChange={(e) => onChange("material", e.target.value)} style={controlBase}>
@@ -267,7 +267,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
 
             <Divider />
 
-            <GroupHeading index="02" title="How it's released" />
+            <GroupHeading index="02" title="Inlet Boundary Conditions" />
             <FieldRow label="Hole size" hint="Equivalent opening diameter">
               <SliderField value={holeSizeMm} min={1} max={50} step={1} unit="mm" onChange={(v) => onChange("holeSizeMm", v)} />
             </FieldRow>
@@ -320,7 +320,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
 
             <Divider />
 
-            <GroupHeading index="03" title="Under what conditions" />
+            <GroupHeading index="03" title="Atmospheric Boundary Conditions" />
             <div className="grid grid-cols-2 gap-5">
               <FieldRow label="Wind speed">
                 <SliderField value={windSpeedMS} min={0} max={20} step={0.1} unit="m/s" onChange={(v) => onChange("windSpeedMS", v)} />

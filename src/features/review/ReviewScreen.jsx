@@ -61,11 +61,10 @@ export default function ReviewScreen({ draft, onEdit, onRunAnalysis }) {
         <div className="flex-1 overflow-y-auto" style={{ borderRight: `1px solid ${COLORS.border}` }}>
           <div className="mx-auto" style={{ maxWidth: 640, padding: "28px 32px 40px" }}>
             <div style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary, marginBottom: 20, lineHeight: 1.5 }}>
-              Confirm the release definition below before running the analysis. Nothing here can be edited
-              directly — use Edit to change any value.
+              Confirm the release definition below before running the analysis. Use Edit to change any value.
             </div>
 
-            <GroupHeading index="01" title="What & where" />
+            <GroupHeading index="01" title="Material Properties" />
             <div className="grid grid-cols-2 gap-3">
               <ComputedField label="Material" value={material} />
               <ComputedField label="Hazard type" value={hazardTypeLabel} />
@@ -76,7 +75,7 @@ export default function ReviewScreen({ draft, onEdit, onRunAnalysis }) {
 
             <Divider />
 
-            <GroupHeading index="02" title="How it's released" />
+            <GroupHeading index="02" title="Inlet Boundary Conditions" />
             <div className="grid grid-cols-2 gap-3">
               <ComputedField label="Hole size" value={`${holeSizeMm} mm`} />
               <ComputedField label="Estimated release rate" value={`${estimatedReleaseRateKgS.toFixed(1)} kg/s`} />
@@ -88,7 +87,7 @@ export default function ReviewScreen({ draft, onEdit, onRunAnalysis }) {
 
             <Divider />
 
-            <GroupHeading index="03" title="Under what conditions" />
+            <GroupHeading index="03" title="Atmospheric Boundary Conditions" />
             <div className="grid grid-cols-2 gap-3">
               <ComputedField label="Wind speed" value={`${windSpeedMS.toFixed(1)} m/s`} />
               <ComputedField
