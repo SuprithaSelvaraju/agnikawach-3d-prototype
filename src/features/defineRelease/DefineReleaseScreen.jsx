@@ -4,7 +4,13 @@ import STUDY_DATA from "../../data/mockStudy";
 import { COLORS, fontUI, fontMono } from "../../styles/tokens";
 import { compassLabel } from "../../utils/geo";
 import DefineReleaseHeader from "./DefineReleaseHeader";
-
+import {
+  RELEASABLE_TYPES,
+  MATERIAL_OPTIONS,
+  STABILITY_OPTIONS,
+  RELEASE_TYPE_OPTIONS,
+  RELEASE_TYPE_LABEL,
+} from "./defineReleaseOptions";
 /* =========================================================================
    DEFINE RELEASE — essential setup fields, collapsed advanced fields, and
    the two existing read-only derived values. No hazard results here.
@@ -15,16 +21,6 @@ import DefineReleaseHeader from "./DefineReleaseHeader";
    left, a facility mini-map + computed-values rail on the right, tying
    the form back to the plant it describes without touching the 3D scene.
    ========================================================================= */
-
-const RELEASABLE_TYPES = new Set(["storage_tank", "vessel", "pipe_run", "pump"]);
-const MATERIAL_OPTIONS = ["Propane", "Natural gas", "LPG", "Hydrogen", "Ammonia", "Chlorine"];
-const STABILITY_OPTIONS = [
-  { value: "B", label: "Sunny", sublabel: "Unstable" },
-  { value: "D", label: "Overcast", sublabel: "Neutral" },
-  { value: "F", label: "Clear night", sublabel: "Stable" },
-];
-const RELEASE_TYPE_OPTIONS = ["continuous_gas_release", "instantaneous_release"];
-const RELEASE_TYPE_LABEL = { continuous_gas_release: "Continuous", instantaneous_release: "Instantaneous" };
 
 /* ---- shared control styling (unchanged values, refined chrome) ---- */
 
@@ -114,7 +110,7 @@ function SegmentedControl({ options, value, onChange }) {
 
 // A field cell whose value is computed, not typed — visually distinct from
 // every editable control on the page: muted panel, monospace, no border.
-function ComputedField({ label, value }) {
+export function ComputedField({ label, value }) {
   return (
     <div className="rounded-sm px-3 py-2" style={{ background: "#EEF0F1" }}>
       <div style={{ fontFamily: fontUI, fontSize: 10.5, color: COLORS.textTertiary, marginBottom: 2 }}>{label}</div>
@@ -123,7 +119,7 @@ function ComputedField({ label, value }) {
   );
 }
 
-function GroupHeading({ index, title }) {
+export function GroupHeading({ index, title }) {
   return (
     <div className="flex items-center gap-2.5 mb-4">
       <span style={{ width: 3, height: 15, background: COLORS.brandSecondary, display: "inline-block" }} />
@@ -133,13 +129,13 @@ function GroupHeading({ index, title }) {
   );
 }
 
-function Divider() {
+export function Divider() {
   return <div style={{ height: 1, background: COLORS.border, margin: "26px 0" }} />;
 }
 
 // Flat top-down schematic — deliberately restrained (no 3D, no interaction)
 // so the release definition stays visually tied to the plant it describes.
-function FacilityMiniMap({ equipment, boundary, selectedId, windDirectionDeg }) {
+export function FacilityMiniMap({ equipment, boundary, selectedId, windDirectionDeg }) {
   const hw = boundary.widthX / 2;
   const hd = boundary.depthZ / 2;
   const { originOffset } = boundary;
@@ -193,29 +189,32 @@ function FacilityMiniMap({ equipment, boundary, selectedId, windDirectionDeg }) 
   );
 }
 
-export default function DefineReleaseScreen({ onContinue }) {
-  const { scenario, environment, facility } = STUDY_DATA;
+export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
+  const { facility } = STUDY_DATA;
 
-  // Essential fields — seeded from the locked contract, editable locally.
-  const [material, setMaterial] = useState(scenario.material.name);
-  const [releaseEquipmentId, setReleaseEquipmentId] = useState(scenario.releaseEquipmentId);
-  const [holeSizeMm, setHoleSizeMm] = useState(scenario.holeSizeMm);
-  const [windSpeedMS, setWindSpeedMS] = useState(environment.windSpeedMS);
-  const [windDirectionDeg, setWindDirectionDeg] = useState(environment.windDirectionDeg);
-  const [stabilityClass, setStabilityClass] = useState(environment.weatherStabilityClass);
-
-  // Advanced fields — collapsed by default.
+  // Advanced-section disclosure is local UI state, not scenario data.
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [vesselPressureBarA, setVesselPressureBarA] = useState(scenario.vesselPressureBarA);
-  const [processTemperatureC, setProcessTemperatureC] = useState(scenario.processTemperatureC);
-  const [releaseType, setReleaseType] = useState(scenario.releaseType);
+
+  const {
+    material,
+    releaseEquipmentId,
+    holeSizeMm,
+    windSpeedMS,
+    windDirectionDeg,
+    stabilityClass,
+    vesselPressureBarA,
+    processTemperatureC,
+    releaseType,
+  } = draft;
 
   const releasableEquipment = facility.equipment.filter((eq) => RELEASABLE_TYPES.has(eq.type));
   const selectedEquipment = facility.equipment.find((eq) => eq.id === releaseEquipmentId);
 
   // Read-only, system-derived — never user input, unchanged from the contract.
-  const estimatedReleaseRateKgS = scenario.estimatedReleaseRateKgS;
-  const hazardType = scenario.material.hazardType;
+  // (Only Propane is modeled, so this stays a fixed lookup rather than a
+  // real per-material calculation.)
+  const estimatedReleaseRateKgS = STUDY_DATA.scenario.estimatedReleaseRateKgS;
+  const hazardType = STUDY_DATA.scenario.material.hazardType;
   const hazardTypeLabel = hazardType.charAt(0).toUpperCase() + hazardType.slice(1);
 
   return (
@@ -247,7 +246,7 @@ export default function DefineReleaseScreen({ onContinue }) {
             <GroupHeading index="01" title="What & where" />
             <div className="grid grid-cols-2 gap-5">
               <FieldRow label="Material" hint="Propane only in this prototype">
-                <select value={material} onChange={(e) => setMaterial(e.target.value)} style={controlBase}>
+                <select value={material} onChange={(e) => onChange("material", e.target.value)} style={controlBase}>
                   {MATERIAL_OPTIONS.map((m) => (
                     <option key={m} value={m} disabled={m !== "Propane"}>
                       {m}
@@ -256,7 +255,7 @@ export default function DefineReleaseScreen({ onContinue }) {
                 </select>
               </FieldRow>
               <FieldRow label="Release equipment">
-                <select value={releaseEquipmentId} onChange={(e) => setReleaseEquipmentId(e.target.value)} style={controlBase}>
+                <select value={releaseEquipmentId} onChange={(e) => onChange("releaseEquipmentId", e.target.value)} style={controlBase}>
                   {releasableEquipment.map((eq) => (
                     <option key={eq.id} value={eq.id}>
                       {eq.name}
@@ -270,7 +269,7 @@ export default function DefineReleaseScreen({ onContinue }) {
 
             <GroupHeading index="02" title="How it's released" />
             <FieldRow label="Hole size" hint="Equivalent opening diameter">
-              <SliderField value={holeSizeMm} min={1} max={50} step={1} unit="mm" onChange={setHoleSizeMm} />
+              <SliderField value={holeSizeMm} min={1} max={50} step={1} unit="mm" onChange={(v) => onChange("holeSizeMm", v)} />
             </FieldRow>
 
             <button
@@ -294,7 +293,7 @@ export default function DefineReleaseScreen({ onContinue }) {
                   <input
                     type="number"
                     value={vesselPressureBarA}
-                    onChange={(e) => setVesselPressureBarA(parseFloat(e.target.value))}
+                    onChange={(e) => onChange("vesselPressureBarA", parseFloat(e.target.value))}
                     style={{ ...controlBase, fontFamily: fontMono }}
                   />
                 </FieldRow>
@@ -302,12 +301,12 @@ export default function DefineReleaseScreen({ onContinue }) {
                   <input
                     type="number"
                     value={processTemperatureC}
-                    onChange={(e) => setProcessTemperatureC(parseFloat(e.target.value))}
+                    onChange={(e) => onChange("processTemperatureC", parseFloat(e.target.value))}
                     style={{ ...controlBase, fontFamily: fontMono }}
                   />
                 </FieldRow>
                 <FieldRow label="Release type">
-                  <select value={releaseType} onChange={(e) => setReleaseType(e.target.value)} style={controlBase}>
+                  <select value={releaseType} onChange={(e) => onChange("releaseType", e.target.value)} style={controlBase}>
                     {RELEASE_TYPE_OPTIONS.map((rt) => (
                       <option key={rt} value={rt}>
                         {RELEASE_TYPE_LABEL[rt]}
@@ -324,15 +323,15 @@ export default function DefineReleaseScreen({ onContinue }) {
             <GroupHeading index="03" title="Under what conditions" />
             <div className="grid grid-cols-2 gap-5">
               <FieldRow label="Wind speed">
-                <SliderField value={windSpeedMS} min={0} max={20} step={0.1} unit="m/s" onChange={setWindSpeedMS} />
+                <SliderField value={windSpeedMS} min={0} max={20} step={0.1} unit="m/s" onChange={(v) => onChange("windSpeedMS", v)} />
               </FieldRow>
               <FieldRow label="Wind direction" hint={`from ${compassLabel(windDirectionDeg)}`}>
-                <SliderField value={windDirectionDeg} min={0} max={359} step={1} unit="°" onChange={setWindDirectionDeg} />
+                <SliderField value={windDirectionDeg} min={0} max={359} step={1} unit="°" onChange={(v) => onChange("windDirectionDeg", v)} />
               </FieldRow>
             </div>
             <div className="mt-5">
               <FieldRow label="Atmospheric stability">
-                <SegmentedControl options={STABILITY_OPTIONS} value={stabilityClass} onChange={setStabilityClass} />
+                <SegmentedControl options={STABILITY_OPTIONS} value={stabilityClass} onChange={(v) => onChange("stabilityClass", v)} />
               </FieldRow>
             </div>
           </div>
