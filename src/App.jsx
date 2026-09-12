@@ -5,13 +5,20 @@ import Header from "./components/Header";
 import FacilityScene from "./scenes/FacilityScene";
 import { ZoneLegend, CompassBadge, MockBadge } from "./scenes/ViewportOverlays";
 import ResultsPanel from "./features/results/ResultsPanel";
+import DefineReleaseScreen from "./features/defineRelease/DefineReleaseScreen";
 
 /* =========================================================================
    ROOT APP — orchestration and state only. All presentation lives in
    ./data, ./styles, ./scenes and ./features/results.
+
+   Minimal screen switch: Define Release is the entry point (it comes
+   first in the real journey). Its Continue button is wired forward, but
+   Review doesn't exist yet, so it lands on the existing Results screen —
+   a placeholder destination, not a built Review step.
    ========================================================================= */
 
 export default function App() {
+  const [screen, setScreen] = useState("defineRelease");
   const data = STUDY_DATA;
   const [selectedEquipmentId, setSelectedEquipmentId] = useState(null);
   const [selectedZoneId, setSelectedZoneId] = useState(null);
@@ -30,6 +37,10 @@ export default function App() {
   const handleSelectZone = useCallback((id) => {
     setSelectedZoneId(id);
   }, []);
+
+  if (screen === "defineRelease") {
+    return <DefineReleaseScreen onContinue={() => setScreen("results")} />;
+  }
 
   return (
     <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: COLORS.appBg }}>
