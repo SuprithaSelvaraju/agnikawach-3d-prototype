@@ -9,6 +9,7 @@ import { ZoneLegend, CompassBadge, MockBadge } from "./scenes/ViewportOverlays";
 import ResultsPanel from "./features/results/ResultsPanel";
 import DefineReleaseScreen from "./features/defineRelease/DefineReleaseScreen";
 import ReviewScreen from "./features/review/ReviewScreen";
+import SetupScreen from "./features/setup/SetupScreen";
 
 /* =========================================================================
    ROOT APP — orchestration and state only. All presentation lives in
@@ -26,7 +27,7 @@ import ReviewScreen from "./features/review/ReviewScreen";
    ========================================================================= */
 
 export default function App() {
-  const [screen, setScreen] = useState("defineRelease");
+  const [screen, setScreen] = useState("setup");
   const [scenarioDraft, setScenarioDraft] = useState(() => createInitialScenarioDraft(STUDY_DATA));
   const [analysisResult, setAnalysisResult] = useState(null);
 
@@ -61,6 +62,10 @@ export default function App() {
     setAnalysisResult(runAnalysis(scenarioDraft));
     setScreen("results");
   }, [scenarioDraft]);
+
+  if (screen === "setup") {
+    return <SetupScreen onStartStudy={() => setScreen("defineRelease")} />;
+  }
 
   if (screen === "defineRelease") {
     return (
