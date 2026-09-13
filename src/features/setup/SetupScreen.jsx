@@ -116,8 +116,58 @@ export default function SetupScreen({ onStartStudy }) {
           backgroundSize: "26px 26px",
         }}
       >
+
+        {/* localized orange leak source */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: "16%",
+            height: "20%",
+            right: "20%",
+            top: "31%",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(255, 103, 30, 0.34) 0%, rgba(255, 103, 30, 0.18) 28%, rgba(255, 103, 30, 0.05) 55%, transparent 75%)",
+            filter: "blur(10px)",
+            zIndex: 0,
+          }}
+        />
+
+        {/* spreading leak cloud */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: "35%",
+            height: "45%",
+            right: "10%",
+            top: "18%",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(ellipse at 42% 55%, rgba(255, 126, 55, 0.18) 0%, rgba(255, 126, 55, 0.10) 25%, rgba(255, 126, 55, 0.045) 48%, transparent 72%)",
+            filter: "blur(20px)",
+            transform: "rotate(-12deg)",
+            zIndex: 0,
+          }}
+        />
+
+        {/* very soft outer atmospheric diffusion */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: "48%",
+            height: "58%",
+            right: "3%",
+            top: "10%",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(ellipse at 40% 55%, rgba(255, 143, 78, 0.07) 0%, rgba(255, 143, 78, 0.035) 40%, transparent 72%)",
+            filter: "blur(28px)",
+            zIndex: 0,
+          }}
+        />
+
         {/* 3D hero — bleeds across most of the viewport */}
-        <div className="absolute inset-y-0 right-0" style={{ width: "68%" }}>
+        <div className="absolute inset-y-0 right-0" style={{ top:"8%", bottom:"1%", width: "68%", zIndex: 1 }}>
             <SetupScene annotations={annotations} />
         </div>
 
@@ -148,7 +198,7 @@ export default function SetupScreen({ onStartStudy }) {
               style={{ background: "rgba(255,255,255,0.88)", border: `1px solid ${COLORS.border}`, backdropFilter: "blur(4px)", maxWidth: 460, boxShadow: "0 12px 30px rgba(20,23,27,0.06)" }}
             >
               <div className="mb-4">
-                <label style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary, fontWeight: 500 }}>
+                <label style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary, fontWeight: 500, }}>
                   Study Name <span style={{ color: COLORS.brand }}>*</span>
                 </label>
                 <input

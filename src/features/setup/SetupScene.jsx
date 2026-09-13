@@ -395,6 +395,118 @@ function buildTree(scale = 1) {
   return g;
 }
 
+function buildLeakCloud(position, sourceY) {
+  const group = new THREE.Group();
+  group.position.set(position.x, 0, position.z);
+
+  // Soft fog texture
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+
+  const ctx = canvas.getContext("2d");
+
+  const gradient = ctx.createRadialGradient(
+    128, 128, 5,
+    128, 128, 128
+  );
+
+  gradient.addColorStop(0, "rgba(255, 125, 55, 0.30)");
+  gradient.addColorStop(0.22, "rgba(255, 130, 60, 0.20)");
+  gradient.addColorStop(0.45, "rgba(255, 140, 70, 0.11)");
+  gradient.addColorStop(0.70, "rgba(255, 150, 80, 0.045)");
+  gradient.addColorStop(1, "rgba(255, 155, 90, 0)");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 256);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const particleMaterial = new THREE.SpriteMaterial({
+    map: texture,
+    color: 0xff9a62,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.NormalBlending,
+  });
+
+  /*
+   * x spread
+   * y height above release
+   * alpha
+   * size
+   * phase
+   */
+  const seeds = [
+    [ 0.00,  0.0, 0.20, 2.4, 0.10],
+    [ 0.35,  0.35, 0.16, 2.8, 0.42],
+    [-0.40,  0.55, 0.15, 3.0, 0.73],
+
+    [ 0.65,  0.85, 0.13, 3.4, 0.18],
+    [-0.70,  1.00, 0.12, 3.5, 0.56],
+    [ 0.15,  1.15, 0.13, 3.8, 0.88],
+
+    [ 0.95,  1.45, 0.10, 4.0, 0.31],
+    [-0.95,  1.65, 0.095, 4.2, 0.67],
+    [ 0.35,  1.85, 0.10, 4.4, 0.12],
+
+    [-0.45,  2.05, 0.085, 4.6, 0.49],
+    [ 1.10,  2.25, 0.075, 4.8, 0.82],
+    [-1.10,  2.45, 0.070, 4.9, 0.25],
+
+    [ 0.60,  2.70, 0.060, 5.1, 0.61],
+    [-0.65,  2.90, 0.055, 5.2, 0.94],
+
+    [ 1.30,  3.15, 0.045, 5.3, 0.37],
+    [-1.25,  3.35, 0.040, 5.4, 0.71],
+
+    [ 0.30,  3.60, 0.035, 5.6, 0.16],
+    [-0.35,  3.85, 0.030, 5.7, 0.53],
+  ];
+
+  const particles = [];
+
+  seeds.forEach(([x, y, alpha, size, phase]) => {
+    const sprite = new THREE.Sprite(particleMaterial.clone());
+
+    sprite.position.set(
+      x,
+      sourceY + y,
+      (Math.sin(phase * Math.PI * 2) * 0.5)
+    );
+
+    sprite.scale.set(size, size, 1);
+
+    sprite.userData = {
+      baseX: x,
+      baseY: sourceY + y,
+      baseZ: Math.sin(phase * Math.PI * 2) * 0.5,
+
+      phase,
+
+      speed: 0.22 + phase * 0.16,
+
+      // Wider movement higher up
+      spread: 0.35 + y * 0.20,
+
+      baseOpacity: alpha,
+      baseScale: size,
+    };
+
+    sprite.material.opacity = alpha;
+
+    group.add(sprite);
+    particles.push(sprite);
+  });
+
+  group.userData.leakParticles = particles;
+
+  return group;
+}
+
 // Restrained, stylized "potential release point" — not the Results
 // screen's LFL/half/quarter palette or geometry. Children tagged with
 // userData.pulse animate a slow, subtle breathing opacity in the render
@@ -794,9 +906,19 @@ function buildRig() {
     )
   );
 
-  const releaseCue = buildReleaseCue({ x: towerPos.x, z: towerPos.z }, towerHeight + 5);
-  rig.add(releaseCue);
-  const pulseMeshes = [];
+const releaseCue = buildReleaseCue(
+  { x: towerPos.x, z: towerPos.z },
+  towerHeight + 5
+);
+rig.add(releaseCue);
+
+const leakCloud = buildLeakCloud(
+  { x: towerPos.x, z: towerPos.z },
+  towerHeight + 1.8
+);
+rig.add(leakCloud);
+
+const pulseMeshes = [];
   releaseCue.traverse((o) => {
     if (o.userData && o.userData.pulse) pulseMeshes.push(o);
   });
@@ -807,7 +929,7 @@ function buildRig() {
     decisions: new THREE.Vector3(-10, 3.4, -7.2),
   };
 
-  return { rig, anchors, pulseMeshes };
+  return { rig, anchors, pulseMeshes, leakCloud };
 }
 
 export default function SetupScene({ annotations = [] }) {
@@ -823,7 +945,7 @@ export default function SetupScene({ annotations = [] }) {
     scene.background = null;
 
     const aspect = width / height;
-    const viewSize = 11.2;
+    const viewSize = 12.3;
     const camera = new THREE.OrthographicCamera(-viewSize * aspect, viewSize * aspect, viewSize, -viewSize, 0.1, 200);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -859,11 +981,11 @@ export default function SetupScene({ annotations = [] }) {
     scene.add(rim);
     scene.add(new THREE.AmbientLight(0xffffff, 0.16));
 
-    const { rig, anchors, pulseMeshes } = buildRig();
+    const { rig, anchors, pulseMeshes, leakCloud } = buildRig();
     scene.add(rig);
 
     // ---- default camera view ----
-    const target = new THREE.Vector3(-1.5, 3, 0.5);
+    const target = new THREE.Vector3(-1.0, 2.2, 0.5);
     const azimuth0 = Math.PI / 4;
     const elevAngle = Math.PI / 8;
     const dist = 40;
@@ -927,6 +1049,37 @@ export default function SetupScene({ annotations = [] }) {
 
       pulseMeshes.forEach((m) => {
         m.material.opacity = m.userData.base * (0.72 + 0.28 * Math.sin(t * 0.9 + m.userData.phase));
+      });
+
+    const leakParticles = leakCloud?.userData?.leakParticles || [];
+
+      leakParticles.forEach((particle) => {
+        const data = particle.userData;
+
+        const drift = Math.sin(
+          t * data.speed + data.phase * Math.PI * 2
+        );
+
+        particle.position.x =
+          data.baseX + drift * data.spread;
+
+        particle.position.z =
+          data.baseZ +
+          Math.cos(t * data.speed * 0.8 + data.phase * 5) *
+            data.spread;
+
+        particle.position.y =
+          data.baseY + Math.sin(t * 0.35 + data.phase * 6) * 0.16;
+
+        const pulse =
+          0.88 +
+          0.12 * Math.sin(t * 0.8 + data.phase * 7);
+
+        particle.material.opacity =
+          data.baseOpacity * pulse;
+
+        particle.scale.setScalar( data.baseScale * (0.94 + 0.08 * Math.sin(t * 0.45 + data.phase * 5)) );
+
       });
 
       renderer.render(scene, camera);
