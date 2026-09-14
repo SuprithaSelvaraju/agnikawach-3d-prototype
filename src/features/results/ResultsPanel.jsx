@@ -19,7 +19,7 @@ export default function ResultsPanel({
 }) {
   return (
     <div
-      className="flex-shrink-0 flex flex-col overflow-y-auto"
+      className="flex-shrink-0 flex flex-col overflow-y-auto results-panel-col"
       style={{ width: 360, background: COLORS.surface, borderLeft: `1px solid ${COLORS.border}` }}
     >
       <HazardZoneList zones={data.hazardZones} selectedZoneId={selectedZoneId} onSelectZone={onSelectZone} />

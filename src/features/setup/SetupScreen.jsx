@@ -1,22 +1,30 @@
 import React, { useMemo, useState } from "react";
 import { ChevronDown, ShieldAlert, Wind, TrendingUp, ArrowRight, User } from "lucide-react";
 import { COLORS, fontUI, fontMono } from "../../styles/tokens";
+import BrandMark from "../../components/BrandMark";
 import SetupScene from "./SetupScene";
 
 /* =========================================================================
    SETUP — Create New Study. The prototype's entry point.
 
    Composition note: the 3D visualization bleeds across most of the
-   viewport as the hero element; the form floats on top of a subtle
-   blueprint-grid panel rather than sitting in a rigid form|canvas split.
-   The three callouts are rendered by SetupScene itself as on-scene
-   annotations (see that file) so they read as part of the visualization,
-   not stacked cards. The 01-05 sequence below is a small explanatory
-   caption, not a sticky step tracker. Form fields are local UI state
-   only — the locked mockStudy contract isn't touched.
+   viewport as the hero element, with a localized orange leak atmosphere
+   layered behind it; the form floats on top of a subtle blueprint-grid
+   panel rather than sitting in a rigid form|canvas split. The three
+   callouts are rendered by SetupScene itself as on-scene annotations (see
+   that file) so they read as part of the visualization, not stacked
+   cards. The journey caption below the form is a small explanatory line,
+   not a sticky step tracker. Form fields are local UI state only — the
+   locked mockStudy contract isn't touched.
+
+   Responsive: this file is self-contained — a local <style> block below
+   900px converts the absolute-overlap hero into a stacked layout (3D on
+   top, form below), hiding the desktop-only leak-atmosphere/fade-mask
+   decoration rather than trying to reposition it. No other file needs to
+   change for this to work.
    ========================================================================= */
 
-const WORKFLOW_STEPS = ["Setup", "Define Release", "Review", "Analysis", "Results"];
+const JOURNEY_STEPS = ["Define your study", "describe the release", "review assumptions", "run analysis", "explore results"];
 
 const ANNOTATIONS = [
   { id: "hazards", icon: ShieldAlert, title: "Identify Hazards" },
@@ -24,63 +32,68 @@ const ANNOTATIONS = [
   { id: "decisions", icon: TrendingUp, title: "Make Safer Decisions" },
 ];
 
-function HexLogo() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 34 34">
-      <polygon
-        points="17,2 29.5,9.5 29.5,24.5 17,32 4.5,24.5 4.5,9.5"
-        fill="none"
-        stroke={COLORS.brandSecondary}
-        strokeWidth="1.6"
-      />
-      <text
-        x="17"
-        y="20.5"
-        textAnchor="middle"
-        style={{ fontFamily: fontUI, fontWeight: 700, fontSize: 10.5, fill: COLORS.brandSecondary }}
-      >
-        AK
-      </text>
-    </svg>
-  );
-}
 
 function SetupHeader() {
   return (
     <header
-      className="flex items-center justify-between px-8 flex-shrink-0"
+      className="flex items-center justify-between px-8 flex-shrink-0 su-header"
       style={{ height: 64, background: "rgba(255,255,255,0.85)", borderBottom: `1px solid ${COLORS.border}`, backdropFilter: "blur(6px)" }}
     >
-      <div className="flex items-center gap-3">
-        <HexLogo />
-        <span style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 19, color: COLORS.brandSecondary, letterSpacing: "0.01em" }}>
-          AgniKawach<sup style={{ fontSize: 10 }}>™</sup>
-        </span>
+    <div className="flex items-center">
+      <BrandMark />
+
+      <div
+        style={{
+          height: 20,
+          width: 1,
+          background: COLORS.border,
+          marginLeft: 18,
+          marginRight: 16,
+        }}
+      />
+
+      <div
+        className="flex items-center"
+        style={{
+          fontFamily: fontUI,
+          fontSize: 12,
+          color: COLORS.textSecondary,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {JOURNEY_STEPS.map((step, i) => (
+          <React.Fragment key={step}>
+            <span
+              style={{
+                color: i === 0 ? COLORS.textPrimary : COLORS.textSecondary,
+              }}
+            >
+              {step}
+            </span>
+
+            {i < JOURNEY_STEPS.length - 1 && (
+              <span
+                style={{
+                  margin: "0 8px",
+                  color: COLORS.borderStrong,
+                }}
+              >
+                /
+              </span>
+            )}
+          </React.Fragment>
+        ))}
       </div>
-      <button className="flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5" style={{ border: `1px solid ${COLORS.border}` }}>
+    </div>
+
+<button className="flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 focus-ring" style={{ border: `1px solid ${COLORS.border}` }}>
         <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "#EEF0F1" }}>
           <User size={13} color={COLORS.textSecondary} />
         </span>
-        <span style={{ fontFamily: fontUI, fontSize: 13, color: COLORS.textPrimary }}>Maya</span>
+        <span style={{ fontFamily: fontUI, fontSize: 13, color: COLORS.textPrimary }}>User</span>
         <ChevronDown size={14} color={COLORS.textTertiary} />
       </button>
     </header>
-  );
-}
-
-// Small informational explanation of the sequence — not a step tracker.
-function WorkflowCaption() {
-  return (
-    <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-6" style={{ fontFamily: fontUI, fontSize: 11.5 }}>
-      {WORKFLOW_STEPS.map((label, i) => (
-        <React.Fragment key={label}>
-          <span style={{ color: i === 0 ? COLORS.textSecondary : COLORS.textTertiary }}>
-            <span style={{ fontFamily: fontMono, fontSize: 10.5 }}>{String(i + 1).padStart(2, "0")}</span> {label}
-          </span>
-          {i < WORKFLOW_STEPS.length - 1 && <span style={{ color: COLORS.borderStrong }}>&rarr;</span>}
-        </React.Fragment>
-      ))}
-    </div>
   );
 }
 
@@ -110,7 +123,7 @@ export default function SetupScreen({ onStartStudy }) {
       <SetupHeader />
 
       <div
-        className="flex-1 relative overflow-hidden"
+        className="flex-1 relative overflow-hidden su-hero"
         style={{
           backgroundImage: `radial-gradient(circle, ${COLORS.brandSecondary}14 1px, transparent 1px)`,
           backgroundSize: "26px 26px",
@@ -119,7 +132,7 @@ export default function SetupScreen({ onStartStudy }) {
 
         {/* localized orange leak source */}
         <div
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none su-leak"
           style={{
             width: "16%",
             height: "20%",
@@ -135,7 +148,7 @@ export default function SetupScreen({ onStartStudy }) {
 
         {/* spreading leak cloud */}
         <div
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none su-leak"
           style={{
             width: "35%",
             height: "45%",
@@ -152,7 +165,7 @@ export default function SetupScreen({ onStartStudy }) {
 
         {/* very soft outer atmospheric diffusion */}
         <div
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none su-leak"
           style={{
             width: "48%",
             height: "58%",
@@ -167,26 +180,26 @@ export default function SetupScreen({ onStartStudy }) {
         />
 
         {/* 3D hero — bleeds across most of the viewport */}
-        <div className="absolute inset-y-0 right-0" style={{ top:"8%", bottom:"1%", width: "68%", zIndex: 1 }}>
+        <div className="absolute inset-y-0 right-0 su-3d-wrap" style={{ top: "8%", bottom: "1%", width: "68%", zIndex: 1 }}>
             <SetupScene annotations={annotations} />
         </div>
 
         {/* soft blend so the hero fades into the panel rather than a hard split */}
         <div
-        className="absolute inset-y-0 left-0 pointer-events-none"
-        style={{ width: 340, background: `linear-gradient(to right, ${COLORS.appBg} 25%, transparent)` }}
+          className="absolute inset-y-0 left-0 pointer-events-none su-leak"
+          style={{ width: 340, background: `linear-gradient(to right, ${COLORS.appBg} 25%, transparent)` }}
         />
 
         {/* floating content column */}
-        <div className="relative z-10 h-full flex items-center" style={{ maxWidth: 620, padding: "0 56px" }}>
+        <div className="relative z-10 h-full flex items-center su-form-wrap" style={{ maxWidth: 620, padding: "0 56px" }}>
           <div>
-            <div className="flex items-center gap-2 mb-3">
+            {/* <div className="flex items-center gap-2 mb-3">
               <span style={{ width: 7, height: 7, borderRadius: 999, background: COLORS.brand, display: "inline-block" }} />
               <span style={{ fontFamily: fontUI, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: COLORS.brand }}>
                 SAFETY ANALYSIS PLATFORM
               </span>
-            </div>
-            <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 38, lineHeight: 1.15, color: COLORS.brandSecondary, marginBottom: 12 }}>
+            </div> */}
+            <h1 className="su-h1" style={{ fontFamily: fontUI, fontWeight: 700, fontSize: 38, lineHeight: 1.15, color: COLORS.brandSecondary, marginBottom: 12, letterSpacing: "-0.01em" }}>
               Create a New Study
             </h1>
             <p style={{ fontFamily: fontUI, fontSize: 14.5, color: COLORS.textSecondary, lineHeight: 1.6, maxWidth: 420, marginBottom: 28 }}>
@@ -195,10 +208,10 @@ export default function SetupScreen({ onStartStudy }) {
 
             <div
               className="rounded-sm p-6"
-              style={{ background: "rgba(255,255,255,0.88)", border: `1px solid ${COLORS.border}`, backdropFilter: "blur(4px)", maxWidth: 460, boxShadow: "0 12px 30px rgba(20,23,27,0.06)" }}
+              style={{ background: "rgba(255,255,255,0.88)", border: `1px solid ${COLORS.border}`,borderTop: `2px solid ${COLORS.brand}`, backdropFilter: "blur(4px)", maxWidth: 460, boxShadow: "0 12px 30px rgba(20,23,27,0.06)" }}
             >
               <div className="mb-4">
-                <label style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary, fontWeight: 500, }}>
+                <label style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary, fontWeight: 500 }}>
                   Study Name <span style={{ color: COLORS.brand }}>*</span>
                 </label>
                 <input
@@ -206,6 +219,7 @@ export default function SetupScreen({ onStartStudy }) {
                   value={studyName}
                   onChange={(e) => setStudyName(e.target.value)}
                   placeholder="e.g. Refinery Safety Analysis"
+                  className="focus-ring"
                   style={{ ...fieldStyle, marginTop: 6 }}
                 />
               </div>
@@ -219,6 +233,7 @@ export default function SetupScreen({ onStartStudy }) {
                   value={facilityName}
                   onChange={(e) => setFacilityName(e.target.value)}
                   placeholder="e.g. LPG Storage Facility"
+                  className="focus-ring"
                   style={{ ...fieldStyle, marginTop: 6 }}
                 />
               </div>
@@ -237,6 +252,7 @@ export default function SetupScreen({ onStartStudy }) {
                   onChange={(e) => setDescription(e.target.value.slice(0, 500))}
                   placeholder="Add a brief description of your study..."
                   rows={3}
+                  className="focus-ring"
                   style={{ ...fieldStyle, marginTop: 6, resize: "none" }}
                 />
               </div>
@@ -244,7 +260,7 @@ export default function SetupScreen({ onStartStudy }) {
               <button
                 onClick={onStartStudy}
                 disabled={!canStart}
-                className="w-full flex items-center justify-center gap-2 rounded-sm py-2.5"
+                className="w-full flex items-center justify-center gap-2 rounded-sm py-2.5 focus-ring"
                 style={{
                   background: canStart ? COLORS.brand : "rgba(194,74,29,0.16)",
                   color: canStart ? "#fff" : "rgba(194,74,29,0.75)",
@@ -261,7 +277,6 @@ export default function SetupScreen({ onStartStudy }) {
               </button>
             </div>
 
-            <WorkflowCaption />
           </div>
         </div>
       </div>

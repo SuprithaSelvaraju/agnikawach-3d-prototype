@@ -6,7 +6,7 @@ export default function EvidencePanel({ evidence, analysis }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-t" style={{ borderColor: COLORS.border }}>
-      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-4 py-3">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 focus-ring">
         <span style={{ fontFamily: fontUI, fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>
           Evidence &amp; assumptions
         </span>

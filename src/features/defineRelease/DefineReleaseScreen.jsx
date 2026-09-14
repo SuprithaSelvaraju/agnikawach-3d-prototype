@@ -72,6 +72,7 @@ function SliderField({ value, min, max, step, unit, onChange }) {
           step={step}
           value={value}
           onChange={(e) => onChange(parseFloat(e.target.value))}
+          className="focus-ring"
           style={numberInputStyle}
         />
         <span style={{ fontFamily: fontUI, fontSize: 11.5, color: COLORS.textTertiary }}>{unit}</span>
@@ -89,7 +90,7 @@ function SegmentedControl({ options, value, onChange }) {
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className="flex-1 text-left"
+            className="flex-1 text-left focus-ring"
             style={{
               borderRadius: 2,
               padding: "7px 10px",
@@ -223,7 +224,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
 
       {/* Live release summary — single line, always current, no separate copy of state */}
       <div
-        className="flex-shrink-0 px-6 py-2 flex items-center gap-x-5 gap-y-1 flex-wrap"
+        className="flex-shrink-0 px-6 py-2 flex items-center gap-x-5 gap-y-1 flex-wrap summary-strip"
         style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` }}
       >
         {[
@@ -239,14 +240,14 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
         ))}
       </div>
 
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 setup-like-two-col">
         {/* LEFT — continuous field groups, no repeated card chrome */}
-        <div className="flex-1 overflow-y-auto" style={{ borderRight: `1px solid ${COLORS.border}` }}>
+        <div className="flex-1 overflow-y-auto two-col-main" style={{ borderRight: `1px solid ${COLORS.border}` }}>
           <div className="mx-auto" style={{ maxWidth: 640, padding: "28px 32px 40px" }}>
             <GroupHeading index="01" title="Material Properties" />
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-5 field-grid-2">
               <FieldRow label="Material" hint="Propane only in this prototype">
-                <select value={material} onChange={(e) => onChange("material", e.target.value)} style={controlBase}>
+                <select value={material} onChange={(e) => onChange("material", e.target.value)} className="focus-ring" style={controlBase}>
                   {MATERIAL_OPTIONS.map((m) => (
                     <option key={m} value={m} disabled={m !== "Propane"}>
                       {m}
@@ -255,7 +256,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
                 </select>
               </FieldRow>
               <FieldRow label="Release equipment">
-                <select value={releaseEquipmentId} onChange={(e) => onChange("releaseEquipmentId", e.target.value)} style={controlBase}>
+                <select value={releaseEquipmentId} onChange={(e) => onChange("releaseEquipmentId", e.target.value)} className="focus-ring" style={controlBase}>
                   {releasableEquipment.map((eq) => (
                     <option key={eq.id} value={eq.id}>
                       {eq.name}
@@ -274,7 +275,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
 
             <button
               onClick={() => setAdvancedOpen((v) => !v)}
-              className="w-full flex items-center justify-between mt-5 pt-3"
+              className="w-full flex items-center justify-between mt-5 pt-3 focus-ring"
               style={{ borderTop: `1px solid ${COLORS.border}` }}
             >
               <span style={{ fontFamily: fontUI, fontSize: 12, fontWeight: 500, color: COLORS.textSecondary }}>
@@ -288,12 +289,13 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
             </button>
 
             {advancedOpen && (
-              <div className="grid grid-cols-2 gap-5 mt-4">
+              <div className="grid grid-cols-2 gap-5 mt-4 field-grid-2">
                 <FieldRow label="Vessel pressure" hint="bar (a)">
                   <input
                     type="number"
                     value={vesselPressureBarA}
                     onChange={(e) => onChange("vesselPressureBarA", parseFloat(e.target.value))}
+                    className="focus-ring"
                     style={{ ...controlBase, fontFamily: fontMono }}
                   />
                 </FieldRow>
@@ -302,11 +304,12 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
                     type="number"
                     value={processTemperatureC}
                     onChange={(e) => onChange("processTemperatureC", parseFloat(e.target.value))}
+                    className="focus-ring"
                     style={{ ...controlBase, fontFamily: fontMono }}
                   />
                 </FieldRow>
                 <FieldRow label="Release type">
-                  <select value={releaseType} onChange={(e) => onChange("releaseType", e.target.value)} style={controlBase}>
+                  <select value={releaseType} onChange={(e) => onChange("releaseType", e.target.value)} className="focus-ring" style={controlBase}>
                     {RELEASE_TYPE_OPTIONS.map((rt) => (
                       <option key={rt} value={rt}>
                         {RELEASE_TYPE_LABEL[rt]}
@@ -321,7 +324,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
             <Divider />
 
             <GroupHeading index="03" title="Atmospheric Boundary Conditions" />
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-5 field-grid-2">
               <FieldRow label="Wind speed">
                 <SliderField value={windSpeedMS} min={0} max={20} step={0.1} unit="m/s" onChange={(v) => onChange("windSpeedMS", v)} />
               </FieldRow>
@@ -338,7 +341,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
         </div>
 
         {/* RIGHT — facility context + computed values, not another form column */}
-        <div className="flex-shrink-0 overflow-y-auto" style={{ width: 300, background: COLORS.surface }}>
+        <div className="flex-shrink-0 overflow-y-auto two-col-side" style={{ width: 300, background: COLORS.surface }}>
           <div style={{ padding: "24px 22px" }}>
             <div style={{ fontFamily: fontUI, fontSize: 11, color: COLORS.textTertiary, marginBottom: 10 }}>
               Release point in facility
@@ -368,7 +371,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
 
       {/* Sticky action footer */}
       <div
-        className="flex-shrink-0 flex items-center justify-between px-6 py-3.5"
+        className="flex-shrink-0 flex items-center justify-between px-6 py-3.5 flex-wrap gap-3"
         style={{ background: COLORS.surface, borderTop: `1px solid ${COLORS.border}` }}
       >
         <span style={{ fontFamily: fontUI, fontSize: 11.5, color: COLORS.textTertiary }}>
@@ -376,7 +379,7 @@ export default function DefineReleaseScreen({ draft, onChange, onContinue }) {
         </span>
         <button
           onClick={onContinue}
-          className="rounded-sm px-5 py-2.5"
+          className="rounded-sm px-5 py-2.5 focus-ring"
           style={{ background: COLORS.brand, color: "#fff", fontFamily: fontUI, fontSize: 13.5, fontWeight: 600 }}
         >
           Continue to review

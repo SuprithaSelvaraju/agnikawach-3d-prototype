@@ -1,4 +1,5 @@
 import { COLORS, fontUI } from "../../styles/tokens";
+import BrandMark from "../../components/BrandMark";
 
 /* =========================================================================
    DEFINE RELEASE HEADER — deliberately separate from components/Header.jsx
@@ -10,18 +11,13 @@ import { COLORS, fontUI } from "../../styles/tokens";
 export default function DefineReleaseHeader({ studyName }) {
   return (
     <header
-      className="flex items-center justify-between px-5 flex-shrink-0"
+      className="flex items-center justify-between px-5 flex-shrink-0 app-header"
       style={{ height: 56, background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` }}
     >
       <div className="flex items-center gap-4 min-w-0">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-6 h-6 rounded-sm flex items-center justify-center" style={{ background: COLORS.brand }}>
-            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, fontFamily: fontUI }}>AK</span>
-          </div>
-          <span style={{ fontFamily: fontUI, fontWeight: 600, fontSize: 14, color: COLORS.textPrimary }}>AgniKawach</span>
-        </div>
-        <div className="w-px h-4" style={{ background: COLORS.border }} />
-        <div className="flex items-center gap-1.5 min-w-0" style={{ fontFamily: fontUI, fontSize: 13 }}>
+        <BrandMark />
+        <div className="w-px h-4 header-divider" style={{ background: COLORS.border }} />
+        <div className="flex items-center gap-1.5 min-w-0 header-breadcrumb" style={{ fontFamily: fontUI, fontSize: 13 }}>
           <span style={{ color: COLORS.textTertiary }}>Studies</span>
           <span style={{ color: COLORS.textTertiary }}>/</span>
           <span className="truncate" style={{ color: COLORS.textTertiary }}>{studyName}</span>
@@ -31,7 +27,7 @@ export default function DefineReleaseHeader({ studyName }) {
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         <span className="w-1.5 h-1.5 rounded-full" style={{ background: COLORS.textTertiary }} />
-        <span style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary }}>Draft — not yet analyzed</span>
+        <span className="header-status-label" style={{ fontFamily: fontUI, fontSize: 12.5, color: COLORS.textSecondary }}>Draft — not yet analyzed</span>
       </div>
     </header>
   );

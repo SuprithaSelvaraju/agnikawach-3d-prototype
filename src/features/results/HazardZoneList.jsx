@@ -12,7 +12,7 @@ export default function HazardZoneList({ zones, selectedZoneId, onSelectZone }) 
             <button
               key={z.id}
               onClick={() => onSelectZone(selected ? null : z.id)}
-              className="w-full text-left rounded-sm px-2.5 py-2 mb-1 flex items-center gap-2.5"
+              className="w-full text-left rounded-sm px-2.5 py-2 mb-1 flex items-center gap-2.5 focus-ring"
               style={{
                 background: selected ? "#F5EDE8" : "transparent",
                 border: `1px solid ${selected ? COLORS.brand : "transparent"}`,

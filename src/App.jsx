@@ -24,7 +24,77 @@ import SetupScreen from "./features/setup/SetupScreen";
    runAnalysis is mocked today (see data/runAnalysis.js) but the seam is
    real: swapping in an API/solver later means changing that one
    function, not this component or the Results screen.
+
+   GLOBAL_STYLE below was previously only rendered inside the Results
+   branch, so the Inter/IBM Plex Mono font import never actually loaded
+   on Setup, Define Release or Review — they were silently falling back
+   to system fonts. It's now rendered once, unconditionally, alongside a
+   small set of shared focus-state and responsive rules used across every
+   screen. No screen's own JSX/logic changes as a result.
    ========================================================================= */
+
+const GLOBAL_STYLE = `
+  @import url('${FONT_IMPORT_HREF}');
+
+  /* ---- consistent focus/hover affordances across the whole app ---- */
+  .focus-ring:focus-visible {
+    outline: 2px solid rgba(194, 74, 29, 0.45);
+    outline-offset: 1px;
+  }
+  input.focus-ring:focus, select.focus-ring:focus, textarea.focus-ring:focus {
+    outline: none;
+    border-color: ${COLORS.brand} !important;
+    box-shadow: 0 0 0 3px rgba(194, 74, 29, 0.14);
+  }
+  button.focus-ring:focus:not(:focus-visible) { outline: none; }
+
+  /* ================= RESPONSIVE ================= */
+
+  /* ---- Setup: form | 3D two-column hero ---- */
+  @media (max-width: 900px) {
+    .setup-hero-row { flex-direction: column; overflow-y: auto !important; }
+    .setup-form-col { width: 100% !important; max-width: none !important; padding: 28px 24px 8px !important; }
+    .setup-3d-col { flex: none !important; width: 100% !important; height: 360px !important; }
+    .setup-h1 { font-size: 27px !important; }
+  }
+  @media (max-width: 480px) {
+    .setup-form-col { padding: 20px 16px 8px !important; }
+    .setup-3d-col { height: 280px !important; }
+    .setup-h1 { font-size: 23px !important; }
+    .setup-header { padding-left: 16px !important; padding-right: 16px !important; }
+    .setup-journey > div:last-child { line-height: 1.9 !important; }
+  }
+
+  /* ---- shared app header (Results / Define Release / Review) ---- */
+  @media (max-width: 640px) {
+    .app-header { padding-left: 12px !important; padding-right: 12px !important; }
+    .header-breadcrumb, .header-divider { display: none !important; }
+  }
+  @media (max-width: 420px) {
+    .header-status-label { display: none !important; }
+  }
+
+  /* ---- Define Release / Review: field-grid | facility-context two-column ---- */
+  @media (max-width: 900px) {
+    .setup-like-two-col { flex-direction: column; overflow-y: auto !important; }
+    .two-col-side { width: 100% !important; order: -1; border-left: none !important; border-bottom: 1px solid ${COLORS.border}; }
+    .two-col-main { border-right: none !important; overflow-y: visible !important; }
+  }
+  @media (max-width: 560px) {
+    .field-grid-2 { grid-template-columns: 1fr !important; }
+    .summary-strip { row-gap: 6px !important; }
+  }
+
+  /* ---- Results: 3D viewport | side panel ---- */
+  @media (max-width: 900px) {
+    .results-row { flex-direction: column; }
+    .results-3d-col { flex: none !important; height: 46vh !important; min-height: 260px; }
+    .results-panel-col { width: 100% !important; }
+  }
+
+  /* ---- generic small-viewport safety net: no horizontal overflow ---- */
+  html, body, #root { max-width: 100%; overflow-x: hidden; }
+`;
 
 export default function App() {
   const [screen, setScreen] = useState("setup");
@@ -63,60 +133,70 @@ export default function App() {
     setScreen("results");
   }, [scenarioDraft]);
 
-  if (screen === "setup") {
-    return <SetupScreen onStartStudy={() => setScreen("defineRelease")} />;
-  }
+  // Back to setup preserves scenarioDraft/analysisResult in memory exactly
+  // as they are — navigating back and forward again does not reset them.
+  const handleBackToSetup = useCallback(() => {
+    setScreen("setup");
+  }, []);
 
-  if (screen === "defineRelease") {
-    return (
+  let content;
+
+  if (screen === "setup") {
+    content = <SetupScreen onStartStudy={() => setScreen("defineRelease")} />;
+  } else if (screen === "defineRelease") {
+    content = (
       <DefineReleaseScreen
         draft={scenarioDraft}
         onChange={handleDraftChange}
         onContinue={() => setScreen("review")}
       />
     );
-  }
-
-  if (screen === "review") {
-    return (
+  } else if (screen === "review") {
+    content = (
       <ReviewScreen
         draft={scenarioDraft}
         onEdit={() => setScreen("defineRelease")}
         onRunAnalysis={handleRunAnalysis}
       />
     );
+  } else {
+    content = (
+      <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: COLORS.appBg }}>
+        <Header study={data.study} onBackToSetup={handleBackToSetup} />
+
+        <div className="flex-1 flex min-h-0 results-row">
+          {/* 3D viewport — hero element */}
+          <div className="flex-1 relative min-w-0 results-3d-col">
+            <FacilityScene
+              data={data}
+              selectedEquipmentId={selectedEquipmentId}
+              selectedZoneId={selectedZoneId}
+              visibleZones={visibleZones}
+              onSelectEquipment={handleSelectEquipment}
+              onSelectZone={handleSelectZone}
+            />
+            <ZoneLegend zones={data.hazardZones} visibleZones={visibleZones} onToggle={toggleZone} />
+            <CompassBadge windSpeedMS={data.environment.windSpeedMS} windDirectionDeg={data.environment.windDirectionDeg} />
+            <MockBadge />
+          </div>
+
+          <ResultsPanel
+            data={data}
+            zonesById={zonesById}
+            selectedZoneId={selectedZoneId}
+            selectedEquipmentId={selectedEquipmentId}
+            onSelectZone={handleSelectZone}
+            onSelectEquipment={handleSelectEquipment}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: COLORS.appBg }}>
-      <style>{`@import url('${FONT_IMPORT_HREF}');`}</style>
-      <Header study={data.study} />
-
-      <div className="flex-1 flex min-h-0">
-        {/* 3D viewport — hero element */}
-        <div className="flex-1 relative min-w-0">
-          <FacilityScene
-            data={data}
-            selectedEquipmentId={selectedEquipmentId}
-            selectedZoneId={selectedZoneId}
-            visibleZones={visibleZones}
-            onSelectEquipment={handleSelectEquipment}
-            onSelectZone={handleSelectZone}
-          />
-          <ZoneLegend zones={data.hazardZones} visibleZones={visibleZones} onToggle={toggleZone} />
-          <CompassBadge windSpeedMS={data.environment.windSpeedMS} windDirectionDeg={data.environment.windDirectionDeg} />
-          <MockBadge />
-        </div>
-
-        <ResultsPanel
-          data={data}
-          zonesById={zonesById}
-          selectedZoneId={selectedZoneId}
-          selectedEquipmentId={selectedEquipmentId}
-          onSelectZone={handleSelectZone}
-          onSelectEquipment={handleSelectEquipment}
-        />
-      </div>
-    </div>
+    <>
+      <style>{GLOBAL_STYLE}</style>
+      {content}
+    </>
   );
 }

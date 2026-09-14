@@ -23,7 +23,7 @@ export function ZoneLegend({ zones, visibleZones, onToggle }) {
             <button
               key={z.id}
               onClick={() => onToggle(z.styleKey)}
-              className="flex items-center gap-2 text-left"
+              className="flex items-center gap-2 text-left focus-ring"
               style={{ opacity: on ? 1 : 0.45 }}
             >
               <span
